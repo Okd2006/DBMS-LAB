@@ -97,6 +97,49 @@ select * from participated order by damage_amount desc;
 select avg(damage_amount) from participated;
 delete from participated where damage_amount<(select avg(damage_amount) from participated);
 
+/* i. Display CAR table in ascending order of manufacturing year */
+SELECT * 
+FROM CAR
+ORDER BY year ASC;
+
+/* ii. Number of accidents involving cars of model 'Lancer' */
+SELECT COUNT(*) AS accident_count
+FROM PARTICIPATED p
+JOIN CAR c ON p.reg_num = c.reg_num
+WHERE c.model = 'Lancer';
+
+/* iii. Total number of people whose cars were involved in accidents in 2008 */
+SELECT COUNT(DISTINCT p.driver_id) AS total_people
+FROM PARTICIPATED p
+JOIN ACCIDENT a ON p.report_num = a.report_num
+WHERE YEAR(a.accident_date) = 2008;
+
+/* iv. List PARTICIPATED relation in descending order of damage amount */
+SELECT *
+FROM PARTICIPATED
+ORDER BY damage_amount DESC;
+
+/* v. Find average damage amount */
+SELECT AVG(damage_amount) AS avg_damage
+FROM PARTICIPATED;
+
+/* vi. Delete tuples whose damage amount is below the average */
+DELETE FROM PARTICIPATED
+WHERE damage_amount < (
+    SELECT AVG(damage_amount) FROM PARTICIPATED
+);
+
+/* vii. Names of drivers whose damage is greater than average */
+SELECT DISTINCT pe.name
+FROM PERSON pe
+JOIN PARTICIPATED p ON pe.driver_id = p.driver_id
+WHERE p.damage_amount > (
+    SELECT AVG(damage_amount) FROM PARTICIPATED
+);
+
+/* viii. Find maximum damage amount */
+SELECT MAX(damage_amount) AS max_damage
+FROM PARTICIPATED;
 
 
 
