@@ -96,12 +96,73 @@ GROUP BY d.customer_name, ba.branch_name
 HAVING COUNT(DISTINCT d.accno) >= 2;
 create view sum as select sum(amount),branch_name from loan group by(branch_name);
 select* from sum;
-select accno from depositer group by accno having count(distinct customer_name)>=2; 
-SELECT d.customer_name, b.branch_name
+
+
+/* i. Find all the customers who have an account at ALL branches
+      located in a specific city (Example: Delhi) */
+
+SELECT d.customer_name
 FROM depositer d
-JOIN bankaccount b ON d.accno = b.accno
-GROUP BY d.customer_name, b.branch_name
-HAVING COUNT(DISTINCT d.accno) >= 2;
+JOIN bankaccount ba ON d.accno = ba.accno
+JOIN branch b ON ba.branch_name = b.branch_name
+WHERE b.branch_city = 'Delhi'
+GROUP BY d.customer_name
+HAVING COUNT(DISTINCT b.branch_name) =
+       (SELECT COUNT(*) FROM branch WHERE branch_city = 'Delhi');
+
+
+/* ii. Find all customers who have a loan at the bank
+       but do NOT have an account */
+
+SELECT DISTINCT bc.customer_name
+FROM bankcustomer bc
+JOIN loan l ON bc.customer_city = (
+    SELECT branch_city FROM branch WHERE branch.branch_name = l.branch_name
+)
+WHERE bc.customer_name NOT IN (
+    SELECT customer_name FROM depositer
+);
+
+
+/* iii. Find all customers who have BOTH an account and a loan
+        at the Bangalore branch */
+
+SELECT DISTINCT d.customer_name
+FROM depositer d
+JOIN bankaccount ba ON d.accno = ba.accno
+JOIN loan l ON ba.branch_name = l.branch_name
+JOIN branch b ON ba.branch_name = b.branch_name
+WHERE b.branch_city = 'Bangalore';
+
+
+/* iv. Find the names of all branches that have greater assets
+       than ALL branches located in Bangalore */
+
+SELECT branch_name
+FROM branch
+WHERE assets > ALL (
+    SELECT assets
+    FROM branch
+    WHERE branch_city = 'Bangalore'
+);
+
+
+/* v. Delete all account tuples at every branch located
+      in a specific city (Example: Bombay) */
+
+DELETE FROM bankaccount
+WHERE branch_name IN (
+    SELECT branch_name
+    FROM branch
+    WHERE branch_city = 'Bombay'
+);
+
+
+/* vi. Update the balance of ALL accounts by 5% */
+
+UPDATE bankaccount
+SET balance = balance * 1.05;
+
 
 
 
